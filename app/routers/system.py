@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Annotated, cast
+
 from fastapi import APIRouter, Depends, Request
 from pymongo.errors import PyMongoError
 
@@ -11,7 +13,7 @@ router = APIRouter()
 @router.get("/metrics")
 async def metrics(
     request: Request,
-    principal: ApiKeyPrincipal = Depends(authenticate),
+    principal: Annotated[ApiKeyPrincipal, Depends(authenticate)],
 ) -> dict[str, object]:
     require_global_diagnostics(principal)
 
@@ -23,11 +25,13 @@ async def metrics(
     except PyMongoError:
         is_database_healthy = False
 
-    request_count = int(metrics_state["request_count"])
-    total_latency = float(metrics_state["total_latency_seconds"])
+    request_count = int(cast(int, metrics_state.get("request_count", 0)))
+    total_latency = float(cast(float, metrics_state.get("total_latency_seconds", 0.0)))
+    status_counts = metrics_state.get("status_counts", {})
+
     return {
         "request_count": request_count,
-        "status_counts": dict(metrics_state["status_counts"]),
+        "status_counts": dict(status_counts) if isinstance(status_counts, dict) else {},
         "average_latency_seconds": total_latency / request_count if request_count else 0.0,
         "database_healthy": is_database_healthy,
     }
