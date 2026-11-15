@@ -1,0 +1,1 @@
+"""mongoREST FastAPI application package."""
