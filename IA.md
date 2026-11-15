@@ -7,6 +7,7 @@ Wait for my confirmation before writing any application code or running containe
 create venv/ in the root proyect and use it
 ---
 install the python libs that you need
+install Ruff
 ---
 create the app
 ---
